@@ -15,11 +15,12 @@ class ParticleCloud2D:      # memory usage: 108B
     x: vec2f
     v: vec2f
     stress: vec6f
+    strain: vec6f
     velocity_gradient: mat2x2
     fix_v: vec2u8
 
     @ti.func
-    def _restart(self, bodyID, materialID, active, mass, position, velocity, volume, stress, velocity_gradient, fix_v):
+    def _restart(self, bodyID, materialID, active, mass, position, velocity, volume, stress, strain, velocity_gradient, fix_v):
         self.bodyID = ti.u8(bodyID)
         self.materialID = ti.u8(materialID)
         self.active = ti.u8(active)
@@ -28,6 +29,7 @@ class ParticleCloud2D:      # memory usage: 108B
         self.v = float(velocity)
         self.vol = float(volume)
         self.stress = float(stress)
+        self.strain = float(strain)
         self.velocity_gradient = float(velocity_gradient)
         self.fix_v = ti.cast(fix_v, ti.u8)
 
@@ -393,13 +395,15 @@ class LargeScaleParticle:
     x: vec3f
     v: vec3f
     stress: vec6f
+    strain: vec6f
 
     @ti.func
-    def _restart(self, bodyID, materialID, active, mass, position, velocity, volume, stress, velocity_gradient, fix_v):
+    def _restart(self, bodyID, materialID, active, mass, position, velocity, volume, stress, strain, velocity_gradient, fix_v):
         self.x = float(position)
         self.v = float(velocity)
         self.vol = float(volume)
         self.stress = float(stress)
+        self.strain = float(strain)
 
     @ti.func
     def _set_essential(self, bodyID, materialID, density, particle_volume, position, init_v, fix_v):
@@ -448,11 +452,12 @@ class ParticleCloud:
     x: vec3f
     v: vec3f
     stress: vec6f
+    strain: vec6f
     velocity_gradient: mat3x3
     fix_v: vec3u8
 
     @ti.func
-    def _restart(self, bodyID, materialID, active, mass, position, velocity, volume, stress, velocity_gradient, fix_v):
+    def _restart(self, bodyID, materialID, active, mass, position, velocity, volume, stress, strain, velocity_gradient, fix_v):
         self.bodyID = ti.u8(bodyID)
         self.materialID = ti.u8(materialID)
         self.active = ti.u8(active)
@@ -461,6 +466,7 @@ class ParticleCloud:
         self.v = float(velocity)
         self.vol = float(volume)
         self.stress = float(stress)
+        self.strain = float(strain)
         self.velocity_gradient = float(velocity_gradient)
         self.fix_v = ti.cast(fix_v, ti.u8)
 
@@ -544,11 +550,12 @@ class ParticleCoupling:      # memory usage: 108B
     v: vec3f
     external_force: vec3f
     stress: vec6f
+    strain: vec6f
     velocity_gradient: mat3x3
     fix_v: vec3u8
 
     @ti.func
-    def _restart(self, bodyID, materialID, active, mass, position, velocity, volume, stress, velocity_gradient, fix_v):
+    def _restart(self, bodyID, materialID, active, mass, position, velocity, volume, stress, strain, velocity_gradient, fix_v):
         self.bodyID = ti.u8(bodyID)
         self.materialID = ti.u8(materialID)
         self.active = ti.u8(active)
@@ -557,6 +564,7 @@ class ParticleCoupling:      # memory usage: 108B
         self.v = float(velocity)
         self.vol = float(volume)
         self.stress = float(stress)
+        self.strain = float(strain)
         self.velocity_gradient = float(velocity_gradient)
         self.fix_v = ti.cast(fix_v, ti.u8)
 
@@ -807,11 +815,13 @@ class ImplicitParticle:
     a: vec3f
     stress: vec6f
     stress0: vec6f
+    strain: vec6f
+    strain0: vec6f
     velocity_gradient: mat3x3
     fix_v: vec3u8
 
     @ti.func
-    def _restart(self, bodyID, materialID, active, mass, position, velocity, volume, stress, velocity_gradient, fix_v):
+    def _restart(self, bodyID, materialID, active, mass, position, velocity, volume, stress, strain, velocity_gradient, fix_v):
         self.bodyID = ti.u8(bodyID)
         self.materialID = ti.u8(materialID)
         self.active = ti.u8(active)
@@ -822,6 +832,8 @@ class ImplicitParticle:
         self.vol0 = float(volume)
         self.stress = float(stress)
         self.stress0 = float(stress)
+        self.strain = float(strain)
+        self.strain0 = float(strain)
         self.velocity_gradient = float(velocity_gradient)
         self.fix_v = ti.cast(fix_v, ti.u8)
 
@@ -908,11 +920,13 @@ class ImplicitParticle2D:
     a: vec2f
     stress: vec6f
     stress0: vec6f
+    strain: vec6f
+    strain0: vec6f
     velocity_gradient: mat2x2
     fix_v: vec2u8
 
     @ti.func
-    def _restart(self, bodyID, materialID, active, mass, position, velocity, volume, stress, velocity_gradient, fix_v):
+    def _restart(self, bodyID, materialID, active, mass, position, velocity, volume, stress, strain, velocity_gradient, fix_v):
         self.bodyID = ti.u8(bodyID)
         self.materialID = ti.u8(materialID)
         self.active = ti.u8(active)
@@ -923,6 +937,8 @@ class ImplicitParticle2D:
         self.vol0 = float(volume)
         self.stress = float(stress)
         self.stress0 = float(stress)
+        self.strain = float(strain)
+        self.strain0 = float(strain)
         self.velocity_gradient = float(velocity_gradient)
         self.fix_v = ti.cast(fix_v, ti.u8)
 

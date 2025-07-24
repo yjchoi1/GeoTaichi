@@ -136,10 +136,11 @@ class WriteFile:
         #normal = scene.particle.normal.to_numpy()[0:scene.particleNum[0]]
         radius = scene.particle.rad.to_numpy()[0:scene.particleNum[0]]
         stress = scene.particle.stress.to_numpy()[0:scene.particleNum[0]]
+        strain = scene.particle.strain.to_numpy()[0:scene.particleNum[0]]
         external_force = scene.particle.external_force.to_numpy()[0:scene.particleNum[0]] 
         velocity_gradient = scene.particle.velocity_gradient.to_numpy()[0:scene.particleNum[0]] 
         state_vars: dict = scene.material.get_state_vars_dict(0, scene.particleNum[0])
-        output.update({'stress': stress, 'radius': radius, 'external_force': external_force, 'velocity_gradient': velocity_gradient, 'state_vars': state_vars})
+        output.update({'stress': stress, 'strain': strain, 'radius': radius, 'external_force': external_force, 'velocity_gradient': velocity_gradient, 'state_vars': state_vars})
         
         #xnorm = np.ascontiguousarray(normal[:, 0])
         #ynorm = np.ascontiguousarray(normal[:, 1])
@@ -202,9 +203,10 @@ class WriteFile:
         output = self.MonitorParticleBase(sims, scene, particle_num)
 
         stress = scene.particle.stress.to_numpy()[0:scene.particleNum[0]]
+        strain = scene.particle.strain.to_numpy()[0:scene.particleNum[0]]
         velocity_gradient = scene.particle.velocity_gradient.to_numpy()[0:scene.particleNum[0]] 
         state_vars = scene.material.get_state_vars_dict(0, scene.particleNum[0])
-        output.update({'stress': stress, 'velocity_gradient': velocity_gradient, 'state_vars': state_vars})
+        output.update({'stress': stress, 'strain': strain, 'velocity_gradient': velocity_gradient, 'state_vars': state_vars})
         
         self.visualizeParticle(sims, output['position'], output['velocity'], output['volume'], state_vars)
         np.savez(self.particle_path+f'/MPMParticle{sims.current_print:06d}', **output)
