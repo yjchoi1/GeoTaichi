@@ -84,7 +84,7 @@ class WriteFile:
             os.makedirs(self.grid_path)
 
     def VisualizeObject2D(self, sims: Simulation, scene: myScene):
-        polygon = scene.contact_parameter.polygon_vertices.to_numpy()
+        polygon = scene.contact.polygon_vertices.to_numpy()
         points_flattened = polygon.flatten()
         posx = np.ascontiguousarray(polygon[:, 0])
         posy = np.ascontiguousarray(polygon[:, 1])
