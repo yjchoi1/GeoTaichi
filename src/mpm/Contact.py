@@ -35,6 +35,12 @@ class MPMContact(ContactBase):
     def __init__(self, contact_phys):
         super().__init__(contact_phys)
         self._name = "MPMContact"
+        
+        # Validate keywords
+        valid_keys = {'friction'}
+        invalid_keys = set(contact_phys.keys()) - valid_keys
+        if invalid_keys:
+            raise RuntimeError(f"Invalid keyword(s): {', '.join(invalid_keys)}. Valid keywords: friction")
     
     def print_contact_message(self):
         print("Friction Coefficient =", self.friction, '\n')
@@ -51,6 +57,13 @@ class GeoContact(ContactBase):
                 raise RuntimeError("The dimension of Keyword:: /Penalty/ should be 2")
         if penalty[0] < 0. or penalty[0] > 1. or penalty[1] < 2.:
             raise RuntimeError("Keyword:: 0 <= /Penalty[0]/ <= 1 and /Penalty[1]/ >= 2")
+        
+        # Validate keywords
+        valid_keys = {'friction', 'penalty', 'cut_off'}
+        invalid_keys = set(contact_phys.keys()) - valid_keys
+        if invalid_keys:
+            raise RuntimeError(f"Invalid keyword(s): {', '.join(invalid_keys)}. Valid keywords: {', '.join(sorted(valid_keys))}")
+            
         self._alpha = penalty[0]
         self._beta = penalty[1]
         self._cut_off = cut_off
@@ -76,7 +89,7 @@ class GeoContact(ContactBase):
         return self._cut_off
     
     @cut_off.setter
-    def friction(self, cut_off):
+    def cut_off(self, cut_off):
         self._cut_off = cut_off
 
     def print_contact_message(self):

@@ -26,7 +26,7 @@ mpm.memory_allocate(memory={
                                                           }
                             })
 
-mpm.add_contact(contact_type="GeoContact", friction=0.1, cutoff=0.8, penalty=[0.78, 2.5])
+mpm.add_contact(contact_type="GeoContact", friction=0.1, cut_off=0.8, penalty=[0.78, 2.5])
 
 mpm.add_material(model="MohrCoulomb",
                  material={
