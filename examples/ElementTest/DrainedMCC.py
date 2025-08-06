@@ -219,6 +219,10 @@ mpm.scene.boundary.traction_boundary[23].dirs = 2
 mpm.scene.boundary.traction_boundary[23].traction = p
 mpm.scene.boundary.traction_list[0] = 24
 
-mpm.select_save_data()
+mpm.select_save_data(grid=True, object=True)
+mpm.postprocessing(
+    read_path= f"DrainedMCC/{int(pressure/1000)}kpa",
+    write_strain_component=True,
+    write_background_grid=True)
 
 mpm.run()

@@ -27,3 +27,5 @@ setup.py
 push_pypi.sh
 venv*
 *__pycache__*
+__pycache__/
+
