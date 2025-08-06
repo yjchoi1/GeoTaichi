@@ -18,7 +18,7 @@ from src.sdf.FastMarchingMethod import FastMarchingMethod
 from src.utils.linalg import (heaviside_function, transformation_matrix_coordinate_system, generate_grid)
 from src.utils.Root import newton
 import trimesh as tm
-from trimesh.interfaces import gmsh
+import gmsh
 from third_party.pyevtk.hl import unstructuredGridToVTK, gridToVTK
 from third_party.pyevtk.vtk import VtkTriangle, VtkQuad
 
