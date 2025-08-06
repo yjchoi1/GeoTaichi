@@ -541,3 +541,84 @@ def compute_residual_error(active_id: int, right_hand_vector: ti.template()) -> 
         rfs += temp
     return ti.sqrt(rfs)
 
+
+# ========================================================= #
+#                   FDM Poisson equation                    #
+# ========================================================= #
+@ti.func
+def get_node_id(index, gnum):
+    return (linearize(index, gnum), 0)
+
+# =========================== Matrix free conjuction gradient method ============================== #
+@ti.kernel
+def kernel_assemble_poisson_equation_dynamic(ghost_cell: int, cnum: ti.types.vector(GlobalVariable.DIMENSION, int), gnum: ti.types.vector(GlobalVariable.DIMENSION, int), grid_size: ti.types.vector(GlobalVariable.DIMENSION, float), igrid_size: ti.types.vector(GlobalVariable.DIMENSION, float), dt: ti.template(), node: ti.template(), flag: ti.template(), surface_tension: ti.template(), cell_type: ti.template(), matProps: ti.template(), right_hand_vector: ti.template()):
+    right_hand_vector.fill(0)
+    parameter1 = matProps.density / dt[None] * igrid_size
+    parameter2 = 1. * igrid_size * igrid_size
+    for I in ti.grouped(cell_type): 
+        if cell_type[I] == 1:
+            cell_id = linearize(I, cnum - 2 * ghost_cell)
+            dof_index = flag[cell_id]
+            for d in ti.static(range(GlobalVariable.DIMENSION)):
+                offset = ti.Vector.unit(GlobalVariable.DIMENSION, d)
+                right_hand_vector[dof_index] += (node.velocity[d][I + offset] - node.velocity[d][I]) * parameter1[d]
+
+    for I in ti.grouped(cell_type): 
+        if cell_type[I] == 1:
+            cell_id = linearize(I, cnum - 2 * ghost_cell)
+            dof_index = flag[cell_id]
+            for d in ti.static(range(GlobalVariable.DIMENSION)):
+                surface_distance = grid_size[d]
+                surface_distance_ratio = ti.abs(surface_distance * igrid_size[d])
+                for s in ti.static((-1, 1)):
+                    offset = ti.Vector.unit(GlobalVariable.DIMENSION, d) * s 
+                    if cell_type[I + offset] == 2:
+                        if s < 0: right_hand_vector[dof_index] += parameter1[d] * (node.velocity[d][I] - 0)
+                        else: right_hand_vector[dof_index] -= parameter1[d] * (node.velocity[d][I + offset] - 0) 
+                    elif cell_type[I + offset] ==0: 
+                        right_hand_vector[dof_index] -= parameter2[d] * (matProps.atmospheric_pressure + surface_tension[I + offset]) / surface_distance_ratio 
+
+@ti.kernel
+def kernel_preconditioning_poisson_equation_matrix(ghost_cell: int, cnum: ti.types.vector(GlobalVariable.DIMENSION, int), grid_size: ti.types.vector(GlobalVariable.DIMENSION, float), igrid_size: ti.types.vector(GlobalVariable.DIMENSION, float), flag: ti.template(), cell_type: ti.template(), diag_A: ti.template()):
+    diag_A.fill(0)
+    parameter = 1. * igrid_size * igrid_size
+    for I in ti.grouped(cell_type): 
+        if cell_type[I] == 1:
+            cell_id = linearize(I, cnum - 2 * ghost_cell)
+            dof_index = flag[cell_id]
+            center_coeff = 0.
+            for d in ti.static(range(GlobalVariable.DIMENSION)):
+                surface_distance = grid_size[d]
+                surface_distance_ratio = ti.abs(surface_distance * igrid_size[d])
+                for dirs in ti.static((-1, 1)):
+                    neighbor_id = I + ti.Vector.unit(GlobalVariable.DIMENSION, d) * dirs
+                    if cell_type[neighbor_id] == 0:
+                        center_coeff += -parameter[d] * surface_distance_ratio
+                    elif cell_type[neighbor_id] == 1:
+                        center_coeff += -parameter[d]
+            diag_A[dof_index] = center_coeff
+
+@ti.kernel
+def kernel_poisson_equation_cg(ghost_cell: int, cnum: ti.types.vector(GlobalVariable.DIMENSION, int), grid_size: ti.types.vector(GlobalVariable.DIMENSION, float), igrid_size: ti.types.vector(GlobalVariable.DIMENSION, float), flag: ti.template(), cell_type: ti.template(), unknown_vector: ti.template(), m_dot_v: ti.template()):
+    m_dot_v.fill(0)
+    parameter = 1. * igrid_size * igrid_size
+    for I in ti.grouped(cell_type): 
+        if cell_type[I] == 1:
+            cell_id = linearize(I, cnum - 2 * ghost_cell)
+            dof_index = flag[cell_id]
+            
+            center_coeff = 0.
+            neighbor_value = 0.
+            for d in ti.static(range(GlobalVariable.DIMENSION)):
+                surface_distance = grid_size[d]
+                surface_distance_ratio = ti.abs(surface_distance * igrid_size[d])
+                for dirs in ti.static((-1, 1)):
+                    neighbor_id = I + ti.Vector.unit(GlobalVariable.DIMENSION, d) * dirs
+                    if cell_type[neighbor_id] == 0:
+                        center_coeff += -parameter[d] * surface_distance_ratio
+                    elif cell_type[neighbor_id] == 1:
+                        linear_neighbor_id = linearize(neighbor_id, cnum - 2 * ghost_cell)
+                        neighbor_dof_index = flag[linear_neighbor_id]
+                        center_coeff += -parameter[d]
+                        neighbor_value += parameter[d] * unknown_vector[neighbor_dof_index]
+            m_dot_v[dof_index] += neighbor_value + center_coeff * unknown_vector[dof_index]

@@ -3,7 +3,7 @@ import taichi as ti
 from src.physics_model.consititutive_model.finite_strain.FiniteStrainModel import FiniteStrainModel
 import src.utils.GlobalVariable as GlobalVariable
 from src.utils.constants import ZEROMAT6x6
-from src.utils.MatrixFunction import principal_tensor, Diagonal, matrix_form
+from src.utils.MatrixFunction import principal_tensor, Diagonal
 from src.utils.TypeDefination import mat3x3
 from src.utils.ObjectIO import DictIO
 
@@ -27,7 +27,7 @@ class HenckyElasticModel(FiniteStrainModel):
         self.poisson = poisson
         self.shear = 0.5 * self.young / (1. + self.poisson)
         self.bulk = self.young / (3. * (1 - 2. * self.poisson))
-        self.max_sound_speed = self.get_sound_speed(self.density, self.young, self.poisson)
+        self.get_sound_speed(self.density, self.young, self.poisson)
 
     def print_message(self, materialID):
         print(" Constitutive Model Information ".center(71, '-'))
@@ -43,11 +43,7 @@ class HenckyElasticModel(FiniteStrainModel):
     @ti.func
     def _initialize_vars_(self, np, particle, stateVars):
         stateVars[np].deformation_gradient = ti.Matrix.identity(float, GlobalVariable.DIMENSION)    
-        stress = particle[np].stress
-        if ti.static(stress.n == 3):   
-            stateVars[np].stress0 = stress
-        else:
-            stateVars[np].stress0 = matrix_form(stress)
+        stateVars[np].stress0 = particle[np].stress
     
     @ti.func
     def elastic_part(self):

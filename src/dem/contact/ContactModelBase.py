@@ -4,6 +4,7 @@ import numpy as np
 
 from src.dem.structs.BaseStruct import (ContactTable, ISContactTable, HistoryContactTable, HistoryISContactTable, DigitalContactTable)
 from src.dem.contact.ContactKernel import *
+from src.dem.contact.contact_point_root import *
 from src.dem.Simulation import Simulation
 from src.dem.SceneManager import myScene
 from src.dem.neighbor.NeighborBase import NeighborBase
@@ -44,6 +45,13 @@ class ContactModelBase(object):
             self.add_surface_properties = self.add_surface_property
             self.calcu_critical_timesteps = self.calcu_critical_timestep
             if object_type == "particle":
+                if self.sims.scheme == "PolySuperEllipsoid" or self.sims.scheme == "PolySuperQuadrics":
+                    if self.sims.iterative_model == "LagrangianMultiplier":
+                        self.iterative_model = LagrangianMultiplieriteration
+                    elif self.sims.iterative_model == "GJK":
+                        self.iterative_model = GJKiteration
+                    elif self.sims.iterative_model == "PCN":
+                        self.iterative_model = PCNiteration
                 if work_type == 0 or work_type == 1:
                     self.resolve = self.tackle_particle_particle_contact_bit_table
                 elif work_type == 2:

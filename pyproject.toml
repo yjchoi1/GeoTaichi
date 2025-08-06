@@ -1,0 +1,40 @@
+[build-system]
+requires = ["setuptools", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+# name = "genesis-world-nightly"
+# version = "0.0.3"
+name = "GeoTaichi"
+version = "0.3.0"
+description = "A Taichi-based numerical package for high-performance simulations of multiscale and multiphysics geophysical problems. "
+readme = "README.md"
+requires-python = ">=3.8"
+dependencies = [
+    "psutil",
+    "scikit-image",
+    "taichi == 1.6",
+    "numpy == 1.26.4",
+    "six"
+]
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["geotaichi", "src", "src.*"]
+
+[tool.setuptools.package-data]
+geotaichi = [
+    "assets/*"
+]
+
+[tool.black]
+line-length = 120
+
+[project.scripts]
+gs = "geotaichi._main:main"
+
+[project.optional-dependencies]
+gen = [
+]
+docs = [
+]

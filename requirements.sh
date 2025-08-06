@@ -1,2 +1,3 @@
+sudo apt install libcgal-dev libeigen3-dev
 python3 -m pip install --upgrade pip
-python3 -m pip install taichi==1.6.0 scipy trimesh imageio matplotlib psutil pynvml==11.4.1 shapely==1.8 meshio rtree scikit-image open3d
+python3 -m pip install taichi numpy scipy psutil scikit-image open3d rtree pynvml matplotlib pygalmesh meshio trimesh faiss-cpu

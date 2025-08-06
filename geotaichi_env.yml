@@ -27,7 +27,7 @@ dependencies:
       - psutil==6.1.0
       - pybind11==2.13.6
       - pygments==2.18.0
-      - pynvml==11.4.1
+      - pynvml==11.5.3
       - rich==13.9.3
       - shapely==2.0.6
       - six==1.16.0

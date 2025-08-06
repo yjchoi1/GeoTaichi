@@ -246,62 +246,69 @@ class myScene(object):
         if not self.node is None:
             print("Warning: Previous node will be override!")
              
-        gtemp = self.find_grid_class(sims)
-        if sims.sparse_grid:
-            if sims.AOSOA:
-                self.parent = ti.root.pointer(ti.ij, (int(np.ceil(self.element.gridSum / sims.block_size[0])), grid_level))
-                temp_tree = self.parent
-                for i in range(1, len(sims.block_size)):
-                    temp_tree = temp_tree.pointer(ti.i, int(sims.block_size[i-1] // sims.block_size[i]))
-                self.child = temp_tree.dense(ti.i, int(sims.block_size[len(sims.block_size)-1]))
-            else:
-                self.child = ti.root.pointer(ti.ij, (self.element.gridSum, grid_level))
-                self.parent = self.child
-        else: 
-            if sims.AOSOA:
-                self.parent = ti.root.dense(ti.ij, (int(np.ceil(self.element.gridSum / sims.block_size[0])), grid_level))
-                temp_tree = self.parent
-                for i in range(1, len(sims.block_size)):
-                    temp_tree = temp_tree.dense(ti.i, int(sims.block_size[i-1] // sims.block_size[i]))
-                self.parent = self.grandparent.dense(ti.i, int(sims.block_size[0] // sims.block_size[1]))
-                self.child = self.parent.dense(ti.i, int(sims.block_size[1]))
-            else:
-                self.child = ti.root.dense(ti.ij, (self.element.gridSum, grid_level))
-
-        if sims.stabilize == 'F-Bar Method':
-            if sims.material_type == "Solid":
-                gtemp.members.update({"jacobian": float})
-            elif sims.material_type == "Fluid":
-                gtemp.members.update({"vol": float})
-                gtemp.members.update({"jacobian": float, "pressure": float})
-        if sims.pressure_smoothing == True:
-            if 'pressure' not in gtemp.members.keys():
-                gtemp.members.update({"pressure": float})
-        if sims.particle_shifting is True:
-            gtemp.members.update({"vol": float})
-        self.node = gtemp.field()
-        self.child.place(self.node)
-        self.node.fill(0)
-
-    #if sims.sparse_grid:
-    #    self.pid = ti.field(int)
-    #    self.parent.dynamic(ti.i, 1024 * 1024, chunk_size=sims.block_size[1] ** sims.dimension * 8).place(self.pid)
-    
-        if sims.mapping == "G2P2G":
-            self.grandparent = [self.grandparent]
-            self.parent = [self.parent]
-            self.child = [self.child]
-            output_grid = self.find_grid_class(sims, grid_level)
+        if self.element_type == "Staggered":
+            if ("Implicit" in sims.solver_type) and (sims.material_type == "Fluid" or sims.material_type == "TwoPhaseDoubleLayer"):
+                self.node = StaggeredGrid(sims, self.element.cnum, self.element.ghost_cell)
+                self.node.grid_reset(self.mass_cut_off)
+                if sims.material_type == "TwoPhaseDoubleLayer":
+                    pass
+        else:
+            gtemp = self.find_grid_class(sims)
             if sims.sparse_grid:
-                grandparent = ti.root.pointer(ti.ij, (int(np.ceil(self.element.gridSum // sims.block_size[0])), grid_level))
-                parent = self.grandparent[1].pointer(ti.i, int(sims.block_size[0] // sims.block_size[1]))
-                child = self.parent[1].dense(ti.i, int(sims.block_size[1]))
-                self.grandparent.append(grandparent)
-                self.parent.append(parent)
-                self.child.append(child)
+                if sims.AOSOA:
+                    self.parent = ti.root.pointer(ti.ij, (int(np.ceil(self.element.gridSum / sims.block_size[0])), grid_level))
+                    temp_tree = self.parent
+                    for i in range(1, len(sims.block_size)):
+                        temp_tree = temp_tree.pointer(ti.i, int(sims.block_size[i-1] // sims.block_size[i]))
+                    self.child = temp_tree.dense(ti.i, int(sims.block_size[len(sims.block_size)-1]))
+                else:
+                    self.child = ti.root.pointer(ti.ij, (self.element.gridSum, grid_level))
+                    self.parent = self.child
             else: 
-                self.child = ti.root.dense(ti.ij, (self.element.gridSum, grid_level))
-            self.grid = [self.node, self.child[1].place(output_grid)]
+                if sims.AOSOA:
+                    self.parent = ti.root.dense(ti.ij, (int(np.ceil(self.element.gridSum / sims.block_size[0])), grid_level))
+                    temp_tree = self.parent
+                    for i in range(1, len(sims.block_size)):
+                        temp_tree = temp_tree.dense(ti.i, int(sims.block_size[i-1] // sims.block_size[i]))
+                    self.parent = self.grandparent.dense(ti.i, int(sims.block_size[0] // sims.block_size[1]))
+                    self.child = self.parent.dense(ti.i, int(sims.block_size[1]))
+                else:
+                    self.child = ti.root.dense(ti.ij, (self.element.gridSum, grid_level))
+
+            if sims.stabilize == 'F-Bar Method':
+                if sims.material_type == "Solid":
+                    gtemp.members.update({"jacobian": float})
+                elif sims.material_type == "Fluid":
+                    gtemp.members.update({"vol": float})
+                    gtemp.members.update({"jacobian": float, "pressure": float})
+            if sims.pressure_smoothing == True:
+                if 'pressure' not in gtemp.members.keys():
+                    gtemp.members.update({"pressure": float})
+            if sims.particle_shifting is True:
+                gtemp.members.update({"vol": float})
+            self.node = gtemp.field()
+            self.child.place(self.node)
+            self.node.fill(0)
+
+        #if sims.sparse_grid:
+        #    self.pid = ti.field(int)
+        #    self.parent.dynamic(ti.i, 1024 * 1024, chunk_size=sims.block_size[1] ** sims.dimension * 8).place(self.pid)
+        
+            if sims.mapping == "G2P2G":
+                self.grandparent = [self.grandparent]
+                self.parent = [self.parent]
+                self.child = [self.child]
+                output_grid = self.find_grid_class(sims, grid_level)
+                if sims.sparse_grid:
+                    grandparent = ti.root.pointer(ti.ij, (int(np.ceil(self.element.gridSum // sims.block_size[0])), grid_level))
+                    parent = self.grandparent[1].pointer(ti.i, int(sims.block_size[0] // sims.block_size[1]))
+                    child = self.parent[1].dense(ti.i, int(sims.block_size[1]))
+                    self.grandparent.append(grandparent)
+                    self.parent.append(parent)
+                    self.child.append(child)
+                else: 
+                    self.child = ti.root.dense(ti.ij, (self.element.gridSum, grid_level))
+                self.grid = [self.node, self.child[1].place(output_grid)]
         self.element.calculate_basis_function(sims, grid_level)
         self.print_grid_message(sims, grid_level, cut_off)
  

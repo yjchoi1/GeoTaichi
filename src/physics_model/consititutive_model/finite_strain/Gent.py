@@ -4,7 +4,6 @@ from src.physics_model.consititutive_model.finite_strain.MaterialKernel import *
 from src.physics_model.consititutive_model.finite_strain.FiniteStrainModel import FiniteStrainModel
 from src.utils.constants import ZEROMAT6x6
 import src.utils.GlobalVariable as GlobalVariable
-from src.utils.MatrixFunction import matrix_form
 from src.utils.TypeDefination import mat3x3
 from src.utils.ObjectIO import DictIO
 
@@ -34,7 +33,6 @@ class Gent(FiniteStrainModel):
         self.bulk = self.young / (3. * (1 - 2. * self.poisson))
         self.Jm1 = Jm1
         self.Jm2 = Jm2
-        self.max_sound_speed = self.get_sound_speed(self.density, self.young, self.poisson)
         
     def print_message(self, materialID):
         print(" Constitutive Model Information ".center(71, '-'))
@@ -51,11 +49,7 @@ class Gent(FiniteStrainModel):
     @ti.func
     def _initialize_vars_(self, np, particle, stateVars):
         stateVars[np].deformation_gradient = ti.Matrix.identity(float, GlobalVariable.DIMENSION)    
-        stress = particle[np].stress
-        if ti.static(stress.n == 3):   
-            stateVars[np].stress0 = stress
-        else:
-            stateVars[np].stress0 = matrix_form(stress)
+        stateVars[np].stress0 = particle[np].stress 
 
     @ti.func
     def corePK(self, np, stateVars):  

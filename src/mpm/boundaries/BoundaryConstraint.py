@@ -380,7 +380,6 @@ class BoundaryConstraints(object):
     def copy_dict_to_field(self, sims):
         nvelocity = len(self.velocity_dict)
         if nvelocity > 0:
-            self.velocity_list[0] = 0
             self.check_velocity_constraint_num(sims, nvelocity)
             keys, values = self.split_dict_to_arrays(dict(sorted(self.velocity_dict.items(), key=lambda item: item)))
             nodeID = np.ascontiguousarray(keys[:, 0])
@@ -391,7 +390,6 @@ class BoundaryConstraints(object):
 
         nreflection = len(self.reflection_dict)
         if nreflection > 0:
-            self.reflection_list[0] = 0
             self.check_reflection_constraint_num(sims, nreflection)
             keys, values = self.split_dict_to_arrays(dict(sorted(self.reflection_dict.items(), key=lambda item: item)))
             nodeID = np.ascontiguousarray(keys[:, 0])
@@ -403,7 +401,6 @@ class BoundaryConstraints(object):
 
         nfriction = len(self.friction_dict)
         if nfriction > 0:
-            self.friction_list[0] = 0
             self.check_friction_constraint_num(sims, nfriction)
             keys, values = self.split_dict_to_arrays(dict(sorted(self.friction_dict.items(), key=lambda item: item)))
             nodeID = np.ascontiguousarray(keys[:, 0])
@@ -415,7 +412,6 @@ class BoundaryConstraints(object):
         
         ntraction = len(self.traction_dict)
         if ntraction > 0:
-            self.traction_list[0] = 0
             self.check_traction_constraint_num(sims, ntraction)
             keys, values = self.split_dict_to_arrays(dict(sorted(self.traction_dict.items(), key=lambda item: item)))
             nodeID = np.ascontiguousarray(keys[:, 0])
@@ -426,7 +422,6 @@ class BoundaryConstraints(object):
 
         ndisplacement = len(self.displacement_dict)
         if ndisplacement > 0:
-            self.displacement_list[0] = 0
             self.check_displacement_constraint_num(sims, ndisplacement)
             keys, values = self.split_dict_to_arrays(dict(sorted(self.displacement_dict.items(), key=lambda item: item)))
             nodeID = np.ascontiguousarray(keys[:, 0])

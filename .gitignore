@@ -25,3 +25,5 @@ dist/
 geotaichi.egg-info/
 setup.py
 push_pypi.sh
+venv*
+*__pycache__*

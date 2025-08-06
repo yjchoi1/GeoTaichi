@@ -7,6 +7,7 @@ from src.mpm.engines.ULExplicitEngine import ULExplicitEngine
 from src.mpm.engines.ULExplicitTwoPhaseEngine import ULExplicitTwoPhaseEngine
 from src.mpm.engines.TLExplicitEngine import TLExplicitEngine
 from src.mpm.engines.ULImplicitEngine import ImplicitEngine
+from src.mpm.engines.IncompressibleEngine import IncompressibleEngine
 from src.mpm.GenerateManager import GenerateManager
 from src.mpm.MPMBase import Solver
 from src.mpm.PostPlot import write_vtk_file
@@ -254,6 +255,8 @@ class MPM(object):
                 elif self.sims.solver_type == "Implicit":
                     if self.sims.material_type == "Solid":
                         self.enginer = ImplicitEngine(self.sims)
+                    elif self.sims.material_type == "Fluid":
+                        self.enginer = IncompressibleEngine(self.sims)
                 elif self.sims.solver_type == "SimiImplicit":
                     if self.sims.material_type == "TwoPhaseDoubleLayer":
                         self.enginer = None
