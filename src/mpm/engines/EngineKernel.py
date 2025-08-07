@@ -2,6 +2,7 @@ import taichi as ti
 
 from src.physics_model.consititutive_model.MaterialKernel import get_angular_velocity
 from src.utils.constants import Threshold, ZEROMAT4x4, ZEROMAT6x3, ZEROVEC2f, ZEROVEC3f, ZEROMAT2x2, ZEROMAT3x3, DELTA2D, DELTA, EYE
+from src.physics_model.consititutive_model.infinitesimal_strain.MaterialKernel import calculate_strain_increment, calculate_strain_increment2D
 from src.utils.MatrixFunction import truncation, trace
 from src.utils.ScalarFunction import vectorize_id, linearize, sgn
 from src.utils.ShapeFunctions import ShapeLinear, GShapeLinear, ShapeLinearCenter, ShapeGIMP, GShapeGIMP, ShapeGIMPCenter, ShapeBsplineQ, GShapeBsplineQ, ShapeBsplineC, GShapeBsplineC
@@ -1546,6 +1547,7 @@ def kernel_compute_stress_strain(start_index: int, end_index: int, dt: ti.templa
         if int(particle[np].active) == 1:
             velocity_gradient = particle[np].velocity_gradient
             previous_stress = particle[np].stress
+            particle[np].strain += calculate_strain_increment(velocity_gradient, dt)
             particle[np].stress = matProps.ComputeStress(np, previous_stress, velocity_gradient, stateVars, dt)
 
 @ti.kernel
@@ -1556,6 +1558,7 @@ def kernel_compute_stress_strain_2D(start_index: int, end_index: int, dt: ti.tem
         if int(particle[np].active) == 1:
             velocity_gradient = particle[np].velocity_gradient
             previous_stress = particle[np].stress
+            particle[np].strain += calculate_strain_increment2D(velocity_gradient, dt)
             particle[np].stress = matProps.ComputeStress2D(np, previous_stress, velocity_gradient, stateVars, dt)
 
 @ti.kernel
@@ -2527,6 +2530,7 @@ def kernel_compute_stress_strain_newmark_2D(dt: ti.template(), start_index: int,
             velocity_gradient = particle[np].velocity_gradient
             previous_stress = particle[np].stress0
             stress = matProps.ComputeStress2D(np, previous_stress, velocity_gradient, stateVars, dt)
+            particle[np].strain += calculate_strain_increment2D(velocity_gradient, dt)
             stiffness_matrix[np] = matProps.compute_stiffness_tensor(np, stress, stateVars)
             particle[np].stress = stress
 
@@ -2539,6 +2543,7 @@ def kernel_compute_stress_strain_newmark(dt: ti.template(), start_index: int, en
             velocity_gradient = particle[np].velocity_gradient
             previous_stress = particle[np].stress0
             stress = matProps.ComputeStress(np, previous_stress, velocity_gradient, stateVars, dt)
+            particle[np].strain += calculate_strain_increment(velocity_gradient, dt)
             stiffness_matrix[np] = matProps.compute_stiffness_tensor(np, stress, stateVars)
             particle[np].stress = stress
 

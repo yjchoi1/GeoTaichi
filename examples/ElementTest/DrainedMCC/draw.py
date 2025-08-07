@@ -46,7 +46,7 @@ start_num=0
 end_num=266
 
 def get_strain(printNum):
-    data = np.load('33kpa/particles/MPMParticle{0:06d}.npz'.format(printNum), allow_pickle=True)
+    data = np.load('./DrainedMCC/303kpa/particles/MPMParticle{0:06d}.npz'.format(printNum), allow_pickle=True)
     print(data['strain'][pid])
 
 
@@ -198,9 +198,9 @@ pa1, qa1, ratioa1, timea1 = drained(33000)
 pa2, qa2, ratioa2, timea2 = drained(98000)
 pa3, qa3, ratioa3, timea3 = drained(303000)
 
-p1, q1, pc1, ratio1, time1 = get_result("33kpa")
-p2, q2, pc2, ratio2, time2 = get_result("98kpa")
-p3, q3, pc3, ratio3, time3 = get_result("303kpa")
+p1, q1, pc1, ratio1, time1 = get_result("./DrainedMCC/33kpa")
+p2, q2, pc2, ratio2, time2 = get_result("./DrainedMCC/98kpa")
+p3, q3, pc3, ratio3, time3 = get_result("./DrainedMCC/303kpa")
 
 yield_p = np.linspace(0, 2*pc1[0], 200)    
 yield_p0 = np.linspace(0, pc1[0], 200)

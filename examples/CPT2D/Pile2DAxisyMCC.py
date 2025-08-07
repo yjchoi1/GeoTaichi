@@ -145,7 +145,7 @@ mpm.select_save_data(grid=True)
 mpm.run(gravity_field=True)
 
 if contact_type == 2: 
-    mpm.postprocessing(read_path='1_Pile2DAxisy_MCC', write_background_grid=False, end_file=51)
+    mpm.postprocessing(read_path='1_Pile2DAxisy_MCC', write_background_grid=False, write_strain_component=True)
 else:
-    mpm.postprocessing(read_path='1_Pile2DAxisy_MCC', write_background_grid=True, end_file=51)
+    mpm.postprocessing(read_path='1_Pile2DAxisy_MCC', write_background_grid=True, write_strain_component=True)
 
