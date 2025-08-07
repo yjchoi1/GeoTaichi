@@ -2,7 +2,7 @@ import sys
 sys.path.append("/home/yj/works/GeoTaichi_Yihao_v1")
 # \\wsl.localhost\Ubuntu\home\yj\works\GeoTaichi_Yihao_v1
 from geotaichi import *
-init(dim=2, device_memory_GB=7.0)
+init(dim=2, device_memory_GB=7.0, arch='cpu')
 
 contact_type = 0   # 0 for MPMContact, 1 for GeoContact, 2 for DEMContact
 
@@ -22,8 +22,8 @@ mpm.set_configuration(domain=ti.Vector([3.6, 9.6]),
 
 mpm.set_solver(solver={
                            "Timestep":                   1e-5,
-                           "SimulationTime":             1,
-                           "SaveInterval":               0.02,
+                           "SimulationTime":             0.1,
+                           "SaveInterval":               0.01,
                            "SavePath":                   '1_Pile2DAxisy_MCC'
                       })
 
@@ -56,7 +56,7 @@ mpm.add_material(model="ModifiedCamClay",
 
 mpm.add_element(element={
                              "ElementType":               "Q4N2D",
-                             "ElementSize":               [0.04, 0.04]})
+                             "ElementSize":               [0.1, 0.1]})
 
 mpm.add_region(region=[{
                             "Name": "region1",
