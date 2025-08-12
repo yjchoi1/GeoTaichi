@@ -1,11 +1,11 @@
 import sys
-sys.path.append("/home/eleven/work/CPT")
+sys.path.append("/home/yj/works/GeoTaichi_Yihao_v1")
 
 from geotaichi import *
 
 init(arch='cpu')
 
-pressure=303000
+pressure=303000  # 33 kPa, 98 kPa, 303 kPa
 
 mpm = MPM()
 
@@ -22,7 +22,7 @@ mpm.set_solver(solver={
                            "Timestep":                   1e-3,
                            "SimulationTime":             80,
                            "SaveInterval":               0.3,
-                           "SavePath":                   f"DrainedMCC/{int(pressure/1000)}kpa"
+                           "SavePath":                   f"examples/ElementTest/DrainedMCC/{int(pressure/1000)}kpa"
                       })
 
 mpm.memory_allocate(memory={
@@ -76,6 +76,8 @@ mpm.add_body(body={
                                    }]
                    })
 
+
+# Top: push down the top surface with velocity 0.005
 mpm.scene.boundary.velocity_boundary[0].node = 37
 mpm.scene.boundary.velocity_boundary[0].level = 0
 mpm.scene.boundary.velocity_boundary[0].dirs = 2
@@ -93,7 +95,7 @@ mpm.scene.boundary.velocity_boundary[3].level = 0
 mpm.scene.boundary.velocity_boundary[3].dirs = 2
 mpm.scene.boundary.velocity_boundary[3].velocity = -0.005
 
-
+# Bottom: push up the bottom surface with velocity 0.005
 mpm.scene.boundary.velocity_boundary[4].node = 21
 mpm.scene.boundary.velocity_boundary[4].level = 0
 mpm.scene.boundary.velocity_boundary[4].dirs = 2
@@ -112,7 +114,7 @@ mpm.scene.boundary.velocity_boundary[7].dirs = 2
 mpm.scene.boundary.velocity_boundary[7].velocity = 0.005
 mpm.scene.boundary.velocity_list[0] = 8
 
-
+# Top. Possitive pressure means compression (negative stress)
 p = pressure/4.
 mpm.scene.boundary.traction_boundary[0].node = 37
 mpm.scene.boundary.traction_boundary[0].level = 0
@@ -166,6 +168,7 @@ mpm.scene.boundary.traction_boundary[11].level = 0
 mpm.scene.boundary.traction_boundary[11].dirs = 2
 mpm.scene.boundary.traction_boundary[11].traction = -p
 
+# Bottom
 mpm.scene.boundary.traction_boundary[12].node = 21
 mpm.scene.boundary.traction_boundary[12].level = 0
 mpm.scene.boundary.traction_boundary[12].dirs = 0
@@ -220,9 +223,10 @@ mpm.scene.boundary.traction_boundary[23].traction = p
 mpm.scene.boundary.traction_list[0] = 24
 
 mpm.select_save_data(grid=True, object=True)
-mpm.postprocessing(
-    read_path= f"DrainedMCC/{int(pressure/1000)}kpa",
-    write_strain_component=True,
-    write_background_grid=True)
 
 mpm.run()
+
+mpm.postprocessing(
+    read_path= f"examples/ElementTest/DrainedMCC/{int(pressure/1000)}kpa",
+    write_strain_component=True,
+    write_background_grid=True)
