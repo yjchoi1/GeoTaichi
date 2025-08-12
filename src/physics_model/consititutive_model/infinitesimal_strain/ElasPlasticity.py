@@ -123,7 +123,7 @@ class PlasticMaterial(ElasticMaterial):
         raise NotImplementedError
     
     @ti.func
-    def ComputeInternalVariables(self, dlambda, dgdsigma, internal_vars, material_params):
+    def ComputeInternalVariables(self, dlambda, dgdsigma, stress, internal_vars, material_params):
         raise NotImplementedError
     
     @ti.func
@@ -147,7 +147,7 @@ class PlasticMaterial(ElasticMaterial):
         abeta = 1. / den if ti.abs(den) > Threshold else 0.
         dlambda = ti.max(voigt_tensor_dot(dfdsigma, dsig_e) * abeta, 0)
         dstress = dsig_e - dlambda * tempMat
-        dinternal_vars = self.ComputeInternalVariables(dlambda, dgdsigma, internal_vars, material_params)
+        dinternal_vars = self.ComputeInternalVariables(dlambda, dgdsigma, stress, internal_vars, material_params)
         return dstress, dinternal_vars
     
     @ti.func
@@ -170,7 +170,7 @@ class PlasticMaterial(ElasticMaterial):
         abeta = 1. / den if ti.abs(den) > Threshold else 0.
         dlambda = f_function * abeta
         dstress = dlambda * tempMat
-        dinternal_vars = self.ComputeInternalVariables(dlambda, dgdsigma, internal_vars, material_params)
+        dinternal_vars = self.ComputeInternalVariables(dlambda, dgdsigma, stress, internal_vars, material_params)
         alpha = 1. # self.line_search(stress, dstress, f_function, internal_vars, material_params)
         return stress - alpha * dstress, internal_vars + alpha * dinternal_vars
     
@@ -528,7 +528,7 @@ class PlasticMaterial(ElasticMaterial):
                 lambda_trial = f_function_trial / den if ti.abs(den) > Tolerance else 0.
 
                 update_stress -= lambda_trial * temp_matrix
-                internal_vars += self.ComputeInternalVariables(lambda_trial, dg_dsigma_trial, internal_vars, material_params)
+                internal_vars += self.ComputeInternalVariables(lambda_trial, dg_dsigma_trial, update_stress, internal_vars, material_params)
             else:
                 df_dsigma = self.ComputeDfDsigma(yield_state, previous_stress, internal_vars, material_params)
                 dg_dsigma = self.ComputeDgDsigma(yield_state, previous_stress, internal_vars, material_params)
@@ -537,7 +537,7 @@ class PlasticMaterial(ElasticMaterial):
                 lambda_ = voigt_tensor_dot(temp_matrix, de) / den if ti.abs(den) > Tolerance else 0.
 
                 update_stress -= lambda_ * temp_matrix
-                internal_vars += self.ComputeInternalVariables(lambda_, dg_dsigma, internal_vars, material_params)
+                internal_vars += self.ComputeInternalVariables(lambda_, dg_dsigma, update_stress, internal_vars, material_params)
 
             yield_state, f_function = self.ComputeYieldState(update_stress, internal_vars, material_params)
             if ti.abs(f_function) > Tolerance:

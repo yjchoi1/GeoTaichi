@@ -316,7 +316,7 @@ class MohrCoulombModel(PlasticMaterial):
             return 0.
     
     @ti.func
-    def ComputeInternalVariables(self, dlambda, dgdsigma, internal_vars, material_params):
+    def ComputeInternalVariables(self, dlambda, dgdsigma, stress, internal_vars, material_params):
         if ti.static(self.is_soft):
             return dlambda * dgdsigma
         else:
