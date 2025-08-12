@@ -201,7 +201,7 @@ class ModifiedCamClayModel(PlasticMaterial):
         return dfdpvstrain * r_func
     
     @ti.func
-    def ComputeInternalVariables(self, dlambda, dgdsigma, internal_vars, material_params):
+    def ComputeInternalVariables(self, dlambda, dgdsigma, stress, internal_vars, material_params):
         dpvstrain = -ComputeStrainInvariantI1(dlambda * dgdsigma)
         lambda_, kappa, void_ratio = material_params[1], material_params[2], material_params[4]
         return ti.Vector([dpvstrain * internal_vars[0] * (1. + void_ratio) / (lambda_ - kappa)])

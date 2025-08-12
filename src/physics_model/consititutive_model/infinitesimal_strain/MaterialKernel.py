@@ -137,6 +137,7 @@ def ComputeStressInvariantJ3(stress):
 
 @ti.func
 def ComputeLodeAngle(stress):
+    # NOTE: check if this is valid for norsand
     J2 = ComputeStressInvariantJ2(stress)
     J3 = ComputeStressInvariantJ3(stress)
     load_angle = 0.
