@@ -136,15 +136,44 @@ def ComputeStressInvariantJ3(stress):
     return J3
 
 @ti.func
-def ComputeLodeAngle(stress):
-    # NOTE: check if this is valid for norsand
+def ComputeLodeAngleWithMode(stress, use_asin: ti.template()):
+    """
+    This function computes the Lode angle for a given stress tensor.
+    NorSand convention uses asin with a sign change
+    """
     J2 = ComputeStressInvariantJ2(stress)
     J3 = ComputeStressInvariantJ3(stress)
-    load_angle = 0.
+    
+    lode_angle = 0.
     if ti.abs(J2) > Threshold:
-        load_angle = (3. * ti.sqrt(3.)/2.) * (J3 / (J2 ** 1.5))
-    load_angle = clamp(-1.0, 1.0, load_angle)
-    return 1./3. * ti.acos(load_angle)
+        lode_angle = (3. * ti.sqrt(3.)/2.) * (J3 / (J2 ** 1.5))
+    lode_angle = clamp(-1.0, 1.0, lode_angle)
+    
+    if ti.static(use_asin):
+        return 1.0 / 3.0 * ti.asin(lode_angle)
+    else:
+        return 1.0 / 3.0 * ti.acos(lode_angle)
+    
+    # r = 0.
+    # if ti.abs(J2) > Threshold:
+    #     r = (3. * ti.sqrt(3.) / 2.) * (J3 / (J2 ** 1.5))
+    # lode_angle = 0.
+    # if ti.static(use_asin):
+    #     # NorSand convention uses asin with a sign change
+    #     arg = clamp(-1.0, 1.0, -r)
+    #     lode_angle = 1.0 / 3.0 * ti.asin(arg)
+    # else:
+    #     arg = clamp(-1.0, 1.0, r)
+    #     lode_angle = 1.0 / 3.0 * ti.acos(arg)
+    # # print("lode_angle", lode_angle)
+    # return lode_angle
+
+@ti.func
+def ComputeLodeAngle(stress):
+    # Backwards-compatible default (acos form)
+    # print("Stress", stress)
+    # print("ComputeLodeAngleWithMode", ComputeLodeAngleWithMode(stress, False))
+    return ComputeLodeAngleWithMode(stress, False)
 
 @ti.func
 def DpDsigma():
