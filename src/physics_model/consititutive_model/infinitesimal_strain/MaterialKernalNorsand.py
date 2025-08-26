@@ -5,6 +5,39 @@ import taichi as ti
 
 
 @ti.func
+def map_stress_comp_neg_to_pos(stress):
+    # Map external convention (compression negative) to internal (compression positive)
+    s = ti.Vector.zero(float, 6)
+    for i in ti.static(range(3)):
+        s[i] = -stress[i]
+    for i in ti.static(range(3, 6)):
+        s[i] = stress[i]
+    return s
+
+
+@ti.func
+def map_stress_comp_pos_to_neg(stress):
+    # Map internal convention (compression positive) back to external (compression negative)
+    s = ti.Vector.zero(float, 6)
+    for i in ti.static(range(3)):
+        s[i] = -stress[i]
+    for i in ti.static(range(3, 6)):
+        s[i] = stress[i]
+    return s
+
+
+@ti.func
+def map_strain_comp_neg_to_pos(strain):
+    # Map external strain (compression negative volumetric) to internal (compression positive)
+    e = ti.Vector.zero(float, 6)
+    for i in ti.static(range(3)):
+        e[i] = -strain[i]
+    for i in ti.static(range(3, 6)):
+        e[i] = strain[i]
+    return e
+
+
+@ti.func
 def getPQ(stress):
     # Returns p, q for a Voigt stress vector (6,)
     s = ti.Vector.zero(float, 6)
@@ -547,6 +580,10 @@ def UMAT(e, stress, p_i, N, H, Hy, M_i, M_tc, chi_tc, Gamma, Lambda, dstrain, Gm
     FTOL = 1e-6
     ITER = 10
 
+    # Map external compression-negative convention to internal compression-positive
+    stress = map_stress_comp_neg_to_pos(stress)
+    dstrain = map_strain_comp_neg_to_pos(dstrain)
+
     # Cap shear stresses
     s = ti.Vector.zero(float, 6)
     for i in ti.static(range(6)):
@@ -575,6 +612,13 @@ def UMAT(e, stress, p_i, N, H, Hy, M_i, M_tc, chi_tc, Gamma, Lambda, dstrain, Gm
     pTrial, qTrial = getPQ(stressTrial)
     FTrial = getF(pTrial, qTrial, p_i, M_i)
     F = getF(p, q, p_i, M_i)
+    
+    # print("NorSand UMAT State:")
+    # print("  p: ", p, ", q: ", q)
+    # print("  stress : ", stress)
+    # print("  dstrain: ", dstrain)
+    # print("  FTrial: ", FTrial, ", F: ", F)
+    # print("f  p_i: ", p_i, ", M_i: ", M_i, ", e: ", e)
 
     if FTrial <= FTOL:
         depsV = dstrain[0] + dstrain[1] + dstrain[2]
@@ -697,4 +741,33 @@ def UMAT(e, stress, p_i, N, H, Hy, M_i, M_tc, chi_tc, Gamma, Lambda, dstrain, Gm
     M_inew = M_i
     e_new = e
 
+    # Map back to external compression-negative convention
+    stress_new = map_stress_comp_pos_to_neg(stress_new)
     return stress_new, p_inew, M_inew, e_new
+
+
+@ti.func
+def calculate_strain_increment_eng(velocity_gradient, dt):
+    # Engineering shear convention: gamma_ij = (du_i/dx_j + du_j/dx_i)
+    de = ti.Vector.zero(float, 6)
+    dts = dt[None]
+    de[0] = velocity_gradient[0, 0] * dts
+    de[1] = velocity_gradient[1, 1] * dts
+    de[2] = velocity_gradient[2, 2] * dts
+    de[3] = (velocity_gradient[0, 1] + velocity_gradient[1, 0]) * dts  # gamma12
+    de[4] = (velocity_gradient[1, 2] + velocity_gradient[2, 1]) * dts  # gamma23
+    de[5] = (velocity_gradient[0, 2] + velocity_gradient[2, 0]) * dts  # gamma13
+    return de
+
+@ti.func
+def calculate_strain_increment2D_eng(velocity_gradient, dt):
+    # Plane strain, engineering shear convention
+    de = ti.Vector.zero(float, 6)
+    dts = dt[None]
+    de[0] = velocity_gradient[0, 0] * dts
+    de[1] = velocity_gradient[1, 1] * dts
+    de[2] = 0.0
+    de[3] = (velocity_gradient[0, 1] + velocity_gradient[1, 0]) * dts  # gamma12
+    de[4] = 0.0
+    de[5] = 0.0
+    return de

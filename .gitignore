@@ -19,3 +19,5 @@ __pycache__/
 *.vts
 *.vtr
 *.log
+*tmp*
+*debug*

@@ -23,7 +23,7 @@ class InfinitesimalStrainModel(Solid):
             return state_vars
 
     @ti.func
-    def _initialize_vars_update_lagrangian(np, particle, stateVars):
+    def _initialize_vars_update_lagrangian(self, np, particle, stateVars):
         raise NotImplementedError
     
     @ti.func
