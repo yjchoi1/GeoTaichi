@@ -1,4 +1,4 @@
-from skimage import measure
+# from skimage import measure
 
 import itertools
 import numpy as np

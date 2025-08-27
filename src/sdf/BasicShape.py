@@ -1,5 +1,5 @@
 import numpy as np
-import open3d as o3d
+# import open3d as o3d
 import meshio
 import itertools, multiprocessing
 import time, math, warnings, types
