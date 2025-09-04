@@ -1,0 +1,145 @@
+import sys
+sys.path.append('/work/08264/baagee/frontera/GeoTaichi')
+
+from geotaichi import *
+
+init(device_memory_GB=7.0, dim=2, arch='gpu')
+
+output_path = 'smallStrainStripFooting_yc2_0g_CubicBSpline'
+
+mpm = MPM()
+
+mpm.set_configuration(domain=ti.Vector([4.5, 7.0]),
+                      background_damping=0.0,
+                      gravity=ti.Vector([0., -0.]),  # Independent var
+                      alphaPIC=0.,  # i.e., FLIP
+                      mapping="USL",
+                      shape_function="CubicBSpline")  # Independent var
+
+mpm.set_solver(solver={
+    "Timestep": 2e-5,  # 2e-5
+    "SimulationTime": 7.0,  #  7.0
+    "SaveInterval": 0.2,
+    "SavePath": output_path
+})
+
+mpm.memory_allocate(memory={
+    "max_material_number": 1,
+    "max_particle_number": 514000,
+    "max_constraint_number": {
+        "max_velocity_constraint": 12680,
+        "max_particle_traction_constraint": 178540,
+        "max_reflection_constraint": 178540
+    }
+})
+
+mpm.add_contact(contact_type="MPMContact", friction=0.)
+
+mpm.add_material(model="MohrCoulomb",
+                 material={
+                     "MaterialID": 1,
+                     "Density": 1800.,
+                     "YoungModulus": 20e6,
+                     "PossionRatio": 0.33,
+                     "Cohesion": 1000,  # 1000
+                     "Friction": 30,
+                     "Dilation": 0.
+                 })
+
+mpm.add_element(element={
+    "ElementType": "Q4N2D",
+    "ElementSize": ti.Vector([0.05, 0.05]),
+    # "Contact": {
+    #     "ContactDetection": "MPMContact",
+    #     "Friction": 0.395,
+    # }
+})
+
+mpm.add_region(region=[
+    {
+        "Name": "region1",
+        "Type": "Rectangle2D",
+        "BoundingBoxPoint": ti.Vector([0, 0]),
+        "BoundingBoxSize": ti.Vector([4.5, 6.0]),
+        "ydirection": ti.Vector([0., 1.])
+    },
+    {
+        "Name": "region2",
+        "Type": "Rectangle2D",
+        "BoundingBoxPoint": ti.Vector([0, 6.0]),
+        "BoundingBoxSize": ti.Vector([0.45, 1.0]),
+        "ydirection": ti.Vector([0., 1.])
+    },
+    {
+        "Name": "region3",
+        "Type": "Rectangle2D",
+        "BoundingBoxPoint": ti.Vector([0.45, 6.0 - 0.05 / 2]),
+        "BoundingBoxSize": ti.Vector([4.5 - 0.45, 0.05 / 2]),
+        # "BoundingBoxPoint": ti.Vector([0.45, 6.0 - 0.05]),
+        # "BoundingBoxSize": ti.Vector([4.5 - 0.45, 0.05]),
+        "ydirection": ti.Vector([0., 1.])
+    }
+]
+)
+
+mpm.add_body(body={
+    "Template": [
+        {
+            "RegionName": "region1",
+            "nParticlesPerCell": 2,
+            "BodyID": 0,
+            "MaterialID": 1,
+            "ParticleStress": {
+                "GravityField": False,
+                "InternalStress": ti.Vector([-50e3, -50e3, -50e3, 0., 0., 0.])
+                # "InternalStress": ti.Vector([-25e3, -50e3, -25e3, 0., 0., 0.])
+            },
+            "Traction": [{"Pressure": ti.Vector([0, -50e3]),
+                          "RegionName": "region3"}],
+            "InitialVelocity": ti.Vector([0., 0.]),
+            "FixVelocity": ["Free", "Free"]
+        },
+        {
+            "RegionName": "region2",
+            "nParticlesPerCell": 2,
+            "BodyID": 1,
+            "RigidBody": True,
+            "Density": 1800,
+            # "Density": 1000,
+            # "ParticleStress": {},
+            # "Traction": {},
+            "InitialVelocity": ti.Vector([0., -0.1]),
+            "FixVelocity": ["Fix", "Fix"]
+        }
+    ]
+})
+
+mpm.add_boundary_condition(boundary=[
+    {
+        "BoundaryType": "VelocityConstraint",
+        "Velocity": [0., 0.],
+        "StartPoint": [0., 0.],
+        "EndPoint": [4.5, 0.],  # Bottom boundary - fix both x and y
+    },
+    {
+        "BoundaryType": "VelocityConstraint",
+        "Velocity": [0., None],
+        "StartPoint": [0., 0.],
+        "EndPoint": [0., 7.0]  # Left boundary - fix only x
+    },
+    {
+        "BoundaryType": "VelocityConstraint",
+        "Velocity": [0., None],
+        "StartPoint": [4.5, 0.0],
+        "EndPoint": [4.5, 7.0]  # Right boundary - fix only x
+    }
+])
+
+mpm.select_save_data(grid=True, object=True)
+
+mpm.run()
+
+mpm.postprocessing(
+    write_background_grid=True,
+    write_strain_component=True,
+    read_path=output_path)
