@@ -5,6 +5,7 @@
 *.npz
 *.tiff
 *.txt
+*__pycache__*
 *.pyc
 *.vtr
 *.vtp
@@ -50,3 +51,4 @@ __pycache__/
 *.log
 *tmp*
 *debug*
+venv/
